@@ -52,6 +52,24 @@ if (argv._[1] == 'list') {
   } else {
     usage();
   }
+} else if (argv._[1] == 'update') {
+  if (argv._[2]) {
+    var options = {
+      title: argv._[2]
+    };
+    if (argv['description']) {
+      options.description = argv['description'];
+    }
+    if (argv['due-on']) {
+      options.due_on = argv['due-on'];
+    }
+    if (argv['title']) {
+      options.newTitle = argv['title'];
+    }
+    getOrganizationRepos(updateMilestone, options, argv.repos);
+  } else {
+    usage();
+  }
 } else if (argv._[1] == 'delete') {
   if (argv._[2]) {
     getOrganizationRepos(deleteMilestone, {title: argv._[2]}, argv.repos);
@@ -131,6 +149,50 @@ function createMilestone(repos, options) {
   });
 }
 
+function updateMilestone(repos, options) {
+  repos.forEach(function(repo) {
+    github.issues.getAllMilestones({
+      user: organization,
+      repo: repo.name
+    }, function(err, milestones) {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      milestones.forEach(function(milestone) {
+        if (milestone.title == options.title) {
+          var message = {
+            user: organization,
+            repo: repo.name,
+            number: milestone.number
+          };
+          if (options.newTitle) {
+            message.title = options.newTitle;
+          } else {
+            message.title = milestone.title;
+          }
+          if (options.description) {
+            message.description = options.description;
+          } else {
+            message.description = milestone.description;
+          }
+          if (options.due_on) {
+            message.due_on = options.due_on;
+          } else {
+            message.due_on = milestone.due_on;
+          }
+          github.issues.updateMilestone(message, function(err, result) {
+            if (err) {
+              console.log(err);
+            }
+            console.log(milestone.html_url + ' updated');
+          });
+        }
+      });
+    });
+  });
+}
+
 function deleteMilestone(repos, options) {
   repos.forEach(function(repo) {
     github.issues.getAllMilestones({
@@ -171,6 +233,12 @@ function usage() {
     '        Options:\n' +
     '            --description <text>:        Milestone description\n' +
     '            --due-on <date YYYY-MM-DD>:  Due date\n' +
+    '\n' +
+    '    update <title>:  Update a milestone on several repositories\n' +
+    '        Options:\n' +
+    '            --description <text>:        New description\n' +
+    '            --due-on <date YYYY-MM-DD>:  New due date\n' +
+    '            --title <title>:             New title\n' +
     '\n' +
     '    delete <title>:  Delete a milestone on several repositories\n' +
     '\n' +
