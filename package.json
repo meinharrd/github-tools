@@ -1,0 +1,15 @@
+{
+  "name": "meinhards-github-tools",
+  "version": "0.0.1",
+  "description": "Tools for managing GitHub repositories across an organization",
+  "author": "Meinhard Benn <meinhard@benn.org>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/meinharrd/github-tools"
+  },
+  "dependencies": {
+    "github": "~0.2.4",
+    "minimist": "~1.1.3"
+  },
+  "private": true
+}
