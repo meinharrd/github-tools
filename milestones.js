@@ -117,7 +117,13 @@ function listMilestones(repos) {
       }
       console.log(repo.full_name + ':');
       milestones.forEach(function(milestone) {
-        console.log('  ' + milestone.title);
+        console.log(' * ' + milestone.title);
+        if (milestone.description) {
+          console.log('   - Description: ' + milestone.description);
+        }
+        if (milestone.due_on) {
+          console.log('   - Due on: ' + milestone.due_on);
+        }
       });
       console.log();
     });
