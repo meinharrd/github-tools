@@ -70,6 +70,18 @@ if (argv._[1] == 'list') {
   } else {
     usage();
   }
+} else if (argv._[1] == 'close') {
+  if (argv._[2]) {
+    getOrganizationRepos(closeMilestone, {title: argv._[2]}, argv.repos);
+  } else {
+    usage();
+  }
+} else if (argv._[1] == 'reopen') {
+  if (argv._[2]) {
+    getOrganizationRepos(reopenMilestone, {title: argv._[2]}, argv.repos);
+  } else {
+    usage();
+  }
 } else if (argv._[1] == 'delete') {
   if (argv._[2]) {
     getOrganizationRepos(deleteMilestone, {title: argv._[2]}, argv.repos);
@@ -199,6 +211,71 @@ function updateMilestone(repos, options) {
   });
 }
 
+function closeMilestone(repos, options) {
+  repos.forEach(function(repo) {
+    github.issues.getAllMilestones({
+      user: organization,
+      repo: repo.name
+    }, function(err, milestones) {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      milestones.forEach(function(milestone) {
+        if (milestone.title == options.title) {
+          var message = {
+            user: organization,
+            repo: repo.name,
+            number: milestone.number,
+            state: 'closed',
+            title: milestone.title
+          };
+          github.issues.updateMilestone(message, function(err, result) {
+            if (err) {
+              console.log(err);
+              return;
+            }
+            console.log(milestone.html_url + ' closed');
+          });
+        }
+      });
+    });
+  });
+}
+
+function reopenMilestone(repos, options) {
+  repos.forEach(function(repo) {
+    github.issues.getAllMilestones({
+      user: organization,
+      repo: repo.name,
+      state: 'closed'
+    }, function(err, milestones) {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      milestones.forEach(function(milestone) {
+        if (milestone.title == options.title) {
+          var message = {
+            user: organization,
+            repo: repo.name,
+            number: milestone.number,
+            state: 'open',
+            title: milestone.title
+          };
+          github.issues.updateMilestone(message, function(err, result) {
+            if (err) {
+              console.log(err);
+              return;
+            }
+            console.log(milestone.html_url + ' reopened');
+          });
+        }
+      });
+    });
+  });
+}
+
 function deleteMilestone(repos, options) {
   repos.forEach(function(repo) {
     github.issues.getAllMilestones({
@@ -245,6 +322,10 @@ function usage() {
     '            --description <text>:        New description\n' +
     '            --due-on <date YYYY-MM-DD>:  New due date\n' +
     '            --title <title>:             New title\n' +
+    '\n' +
+    '    close <title>:   Close a milestone on several repositories\n' +
+    '\n' +
+    '    reopen <title>:  Reopen a closed milestone on several repositories\n' +
     '\n' +
     '    delete <title>:  Delete a milestone on several repositories\n' +
     '\n' +
